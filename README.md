@@ -28,7 +28,7 @@ Follow these steps to run the project locally.
 
 **1. Clone the Repository:**
 ```bash
-git clone <your-github-repo-url>
+git clone https://github.com/shiva9198/module_1_rag.git
 cd module_1_rag
 ```
 
@@ -214,6 +214,16 @@ This project successfully implements a core RAG pipeline, but it has limitations
 4. **Package not found:** Install missing dependencies:
    ```bash
    pip install -r requirements.txt
+   ```
+
+5. **Warning messages suppressed:** The application automatically suppresses common warnings for cleaner output:
+   - `urllib3` SSL warnings (due to macOS LibreSSL vs OpenSSL)
+   - `tokenizers` parallelism warnings (from HuggingFace models)
+   
+   If you want to see all warnings, comment out these lines in `main.py`:
+   ```python
+   warnings.filterwarnings("ignore", category=UserWarning, module="urllib3")
+   os.environ["TOKENIZERS_PARALLELISM"] = "false"
    ```
 
 ## 📚 Learning Objectives Met
