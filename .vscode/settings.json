@@ -1,0 +1,8 @@
+{
+  // Use the project's virtual environment Python so Pylance/VS Code resolve imports
+  "python.defaultInterpreterPath": "/Users/shiva/Documents/Agentic_AI/module_1_rag/venv/bin/python",
+  // Help the language server find site-packages if needed
+  "python.analysis.extraPaths": [
+    "./venv/lib/python3.9/site-packages"
+  ]
+}
