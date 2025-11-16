@@ -107,18 +107,41 @@ def run_query(chain, query):
     Runs a query through the RAG chain and prints the results.
     """
     print(f"\nProcessing query: '{query}'")
-    
-    # Invoke the chain
-    # The result is a dictionary with 'input', 'context', and 'answer'
-    result = chain.invoke({"input": query})
-    
+
+    # The chain created by `create_retrieval_chain` will internally call the
+    # retriever, but we also perform an explicit retrieval here so we can
+    # surface which document chunks are being used and handle empty results.
+    docs = []
+    try:
+        # Many LangChain retrievers implement `get_relevant_documents`
+        if hasattr(chain, "retriever") and hasattr(chain.retriever, "get_relevant_documents"):
+            docs = chain.retriever.get_relevant_documents(query)
+        elif hasattr(chain, "retriever") and hasattr(chain.retriever, "retrieve"):
+            docs = chain.retriever.retrieve(query)
+    except Exception:
+        docs = []
+
+    if not docs:
+        print("\n[WARN] No relevant context found in the vector store for this query.")
+        print("Try rephrasing the question or run `python ingest.py` with more documents.")
+
+    else:
+        print("\n--- RETRIEVED CONTEXT (preview) ---")
+        for i, d in enumerate(docs[:3]):
+            snippet = d.page_content[:300].replace('\n', ' ')
+            print(f"Chunk {i+1}: {snippet}...\n")
+
+    # Invoke the chain (the chain will still use its configured retriever)
+    try:
+        result = chain.invoke({"input": query})
+    except Exception as e:
+        print(f"[ERROR] Failed to invoke RAG chain: {e}")
+        return
+
     print("\n--- ANSWER ---")
-    print(result["answer"])
-    
-    # Optional: Print the context used
-    # print("\n--- CONTEXT USED ---")
-    # for i, doc in enumerate(result["context"]):
-    #     print(f"Chunk {i+1}:\n{doc.page_content}\n")
+    # The chain returns the answer under the `answer` key in this setup
+    answer = result.get("answer") if isinstance(result, dict) else result
+    print(answer)
 
 # --- MAIN EXECUTION ---
 

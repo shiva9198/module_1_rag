@@ -197,6 +197,14 @@ This project successfully implements a core RAG pipeline, but it has limitations
 * **Simple Retrieval:** It uses a basic "Top-K" retrieval. It doesn't use more advanced techniques like query re-writing or reranking.
 * **Static Data:** The vector store is static. If the source document changes, `ingest.py` must be run again.
 
+## **Scope & Domains**
+
+- **Document Domains:** This project is intended for answering questions grounded in the textual content you provide in the `data/` folder (e.g., `data/sample_doc.txt`). It is not intended as a general web- or knowledge-base QA system — its domain is strictly the documents you ingest.
+- **Expected Query Types:** The assistant works best for extractive and summary-style questions whose answers are present in the ingested text (definitions, facts, short explanations). Example: "What is agentic AI?" or "List the core components of an AI agent."
+- **Out-of-Domain Queries:** If a question falls outside the ingested documents (e.g., asking about general world facts not present in your corpus), the system will either return a warning or an answer claiming lack of knowledge (per the system prompt). Re-ingesting additional documents covering the desired domain improves coverage.
+- **Query Handling:** The pipeline performs vector retrieval (Top-K) and then generates a grounded answer based only on retrieved chunks. The current pipeline does not perform query rewriting, reranking, or multi-step chain-of-thought reasoning. Consider adding those if you need broader, more robust question handling.
+
+
 ## 🚧 Troubleshooting
 
 **Common Issues:**
