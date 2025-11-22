@@ -108,38 +108,28 @@ def run_query(chain, query):
     """
     print(f"\nProcessing query: '{query}'")
 
-    # The chain created by `create_retrieval_chain` will internally call the
-    # retriever, but we also perform an explicit retrieval here so we can
-    # surface which document chunks are being used and handle empty results.
-    docs = []
-    try:
-        # Many LangChain retrievers implement `get_relevant_documents`
-        if hasattr(chain, "retriever") and hasattr(chain.retriever, "get_relevant_documents"):
-            docs = chain.retriever.get_relevant_documents(query)
-        elif hasattr(chain, "retriever") and hasattr(chain.retriever, "retrieve"):
-            docs = chain.retriever.retrieve(query)
-    except Exception:
-        docs = []
-
-    if not docs:
-        print("\n[WARN] No relevant context found in the vector store for this query.")
-        print("Try rephrasing the question or run `python ingest.py` with more documents.")
-
-    else:
-        print("\n--- RETRIEVED CONTEXT (preview) ---")
-        for i, d in enumerate(docs[:3]):
-            snippet = d.page_content[:300].replace('\n', ' ')
-            print(f"Chunk {i+1}: {snippet}...\n")
-
-    # Invoke the chain (the chain will still use its configured retriever)
+    # Invoke the chain
+    # The create_retrieval_chain returns a dict with keys: 'input', 'context', 'answer'
     try:
         result = chain.invoke({"input": query})
     except Exception as e:
         print(f"[ERROR] Failed to invoke RAG chain: {e}")
         return
 
+    # Extract retrieved context (documents)
+    docs = result.get("context", [])
+
+    if not docs:
+        print("\n[WARN] No relevant context found in the vector store for this query.")
+        print("Try rephrasing the question or run `python ingest.py` with more documents.")
+    else:
+        print("\n--- RETRIEVED CONTEXT (preview) ---")
+        for i, d in enumerate(docs[:3]):
+            snippet = d.page_content[:300].replace('\n', ' ')
+            print(f"Chunk {i+1}: {snippet}...\n")
+
     print("\n--- ANSWER ---")
-    # The chain returns the answer under the `answer` key in this setup
+    # The chain returns the answer under the `answer` key
     answer = result.get("answer") if isinstance(result, dict) else result
     print(answer)
 
